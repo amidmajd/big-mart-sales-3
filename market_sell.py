@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn import tree
+import numpy as np
 
 ####### fill missing values ######
 def item_fat(data):
@@ -11,19 +12,13 @@ def item_fat(data):
 def item_weight(data):
     for index, item in data.iterrows():
         if pd.isnull(item[1]):
-            true_value = 0
             for inx, i in data[data.loc[:, 'Item_Identifier'] == item[0]].iterrows():
                 if not pd.isnull(i[1]):
-                    true_value = i[1]
+                    data.iloc[index, 1] = i[1]
                     break
-            if true_value == 0:
-                siml = data[(data.loc[:, 'Item_Type'] == item[4])
-                            & (data.loc[:, 'Item_Visibility'] > round(item[3], 2))
-                            & (data.loc[:, 'Item_Visibility'] > round(item[3], 2) - 0.005)]
-                w_tmp = siml.iloc[:, 1].mean()
-                data.iloc[index, 1] = w_tmp
-            else:
-                data.iloc[index, 1] = true_value
+    w_data = data.iloc[:, 1]
+    w_data.fillna(method='ffill', inplace=True)
+    data['Item_Weight'] = w_data
     return data
 
 
@@ -40,19 +35,12 @@ def item_visibility(data):
                     tmp_count += 1
             if tmp_count != 0:
                 true_value /= tmp_count
-        
-            if true_value == 0:
-                tmp_selected = data[data.loc[:, 'Item_Identifier'] == item[0]]
-                W_me = tmp_selected.loc[:, 'Item_Weight'].mean()
-        
-                siml = data[(data.loc[:, 'Item_Type'] == item[4])
-                            & (data.loc[:, 'Item_Fat_Content'] == item[2])
-                            & (data.loc[:, 'Item_Weight'] > W_me - 1.5)
-                            & (data.loc[:, 'Item_Weight'] > W_me + 1.5)]
-        
-                data.iloc[index, 3] = siml.iloc[:, 3].mean()
-            else:
                 data.iloc[index, 3] = true_value
+
+    visb_data = data.loc[:, 'Item_Visibility']
+    visb_data = visb_data.replace(0, np.nan)
+    visb_data.fillna(method='ffill', inplace=True)
+    data['Item_Visibility'] = visb_data
     return data
 
 
@@ -72,7 +60,7 @@ def outlet_size(data):
 def encode(data):
     encode_dict = {}
     for obj in ['Item_Identifier', 'Item_Fat_Content', 'Item_Type', 'Outlet_Identifier',
-                'Outlet_Size', 'Outlet_Location_Type', 'Outlet_Type', ]:
+                'Outlet_Size', 'Outlet_Location_Type', 'Outlet_Type']:
         tmp = {}
         for index, item in enumerate(data.loc[:, obj].unique()):
             tmp[item] = index
@@ -102,6 +90,7 @@ test_data_set = pd.read_csv('Test.csv')
 test_data = test_data_set
 data = data_set.iloc[:, :11]
 target = data_set.iloc[:, 11]
+
 
 data = item_fat(data)
 data = item_weight(data)
