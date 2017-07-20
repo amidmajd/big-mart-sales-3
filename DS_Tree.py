@@ -6,6 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import forest
 from xgboost import XGBRegressor
+import xgboost as xgb
+import seaborn
+seaborn.set_style('darkgrid')
 # import data_clean
 
 
@@ -39,39 +42,40 @@ model.fit(x_train, y_train)
 # plt.show()
 #
 print('model 1:',mean_squared_error(y_test, model.predict(x_test)))
+print('score :',model.score(x_test, y_test))
 
 
 
-model_2 = forest.RandomForestRegressor(max_depth= 6, n_estimators=46)
+model_2 = forest.RandomForestRegressor(max_depth= 6, n_estimators=27)
 model_2.fit(x_train, y_train)
 print('model 2:',mean_squared_error(y_test, model_2.predict(x_test)))
+print('score :', model_2.score(x_test, y_test)*100)
 # 4,5 = 1235606
-# ploter = []
-# for i in range(1, 100):
-#     model = forest.RandomForestRegressor(max_depth=6, n_estimators=i)
-#     model.fit(x_train, y_train)
-#     ploter.append((i, mean_squared_error(y_test, model.predict(x_test))))
-#     print(i,'/',99)
-# plt.plot([x for x, y in ploter], [y for x, y in ploter], c='r', marker='.')
-# plt.show()
-
+ploter = []
+for i in range(1, 35):
+    model = forest.RandomForestRegressor(max_depth=6, n_estimators=i)
+    model.fit(x_train, y_train)
+    ploter.append((i, mean_squared_error(y_test, model.predict(x_test))))
+    print(i,'/',99)
+plt.plot([x for x, y in ploter], [y for x, y in ploter], c='b', linewidth=1.5)
+plt.show()
 pre_data = model_2.predict(test_data)
 pre_data = pd.DataFrame(pre_data)
-###### Tree ######
-
-simple = pd.read_csv('SampleSubmission.csv')
-simple['Item_Outlet_Sales'] = pre_data
-simple.to_csv('generated_SampleSubmission.csv')
-
+#
+# simple = pd.read_csv('SampleSubmission.csv')
+# simple['Item_Outlet_Sales'] = pre_data
+# simple.to_csv('generated_SampleSubmission.csv')
 
 
 
 
 
 
-# model_3 = XGBRegressor(max_depth=4, n_estimators=12, learning_rate=.2)
-# model_3.fit(x_train, y_train)
-# print('model 3:',mean_squared_error(y_test, model_3.predict(x_test)))
+
+model_3 = XGBRegressor(max_depth=4, n_estimators=12, learning_rate=.2)
+model_3.fit(x_train, y_train)
+print('model 3:', mean_squared_error(y_test, model_3.predict(x_test)))
+print('score :', model_3.score(x_test,y_test))
 # 8,40 = 1324449
 # 4, 34 = 1150544
 
@@ -84,4 +88,6 @@ simple.to_csv('generated_SampleSubmission.csv')
 # plt.plot([x for x, y in ploter], [y for x, y in ploter], c='r', marker='.')
 # plt.show()
 
-# print('model 3:',mean_squared_error(y_test, model.predict(x_test)))
+#
+
+
